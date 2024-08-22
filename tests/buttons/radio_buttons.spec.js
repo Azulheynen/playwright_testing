@@ -1,23 +1,28 @@
 import { test, expect } from "@playwright/test";
-import { selectors } from "playwright";
 
 test("navigation", async ({ page }) => {
   await page.goto("https://qa-automation-practice.netlify.app/radiobuttons");
 });
 
-test("click on radio buttons, and they act acorddingly", async ({ page }) => {
+test("click on radio buttons, and they act accordingly", async ({ page }) => {
   await page.goto("https://qa-automation-practice.netlify.app/radiobuttons");
 
-  selectors.setTestIdAttribute("id");
-  const firstRadioButton = page.getByTestId("radio-button1");
-  await firstRadioButton.check();
-  expect(firstRadioButton).toBeChecked();
+  const radioButtons = page.locator('input[type="radio"]');
+  const count = await radioButtons.count();
 
-  const secondRadioButton = page.getByTestId("radio-button2");
-  await secondRadioButton.check();
-  await expect(firstRadioButton).toBeChecked({ checked: false });
+  for (let i = 0; i < count; i++) {
+    const singleRadioButton = radioButtons.nth(i);
+    const disabled = await singleRadioButton.getAttribute("disabled");
+    if (disabled === null) {
+      await singleRadioButton.check();
+      await expect(singleRadioButton).toBeChecked();
 
-  const thirdRadioButton = page.getByTestId("radio-button3");
-  await thirdRadioButton.check();
-  await expect(secondRadioButton).toBeChecked({ checked: false });
+      for (let x = 0; x < count; x++) {
+        if (i !== x) {
+          const theRest = radioButtons.nth(x);
+          await expect(theRest).not.toBeChecked();
+        }
+      }
+    }
+  }
 });
